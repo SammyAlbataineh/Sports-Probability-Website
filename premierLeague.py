@@ -54,8 +54,16 @@ for _, row in test_df.iterrows():
     home_win = home_goals > away_goals
     away_win = away_goals > home_goals
     date = row["Date"]
-    ratings[home] += add_val(home_goals, home_win, False, date)
-    ratings[away] += add_val(away_goals, away_win, away_win, date)
+    home_val = 0
+    away_val = 0
+    if ratings[home] > ratings[away]:
+        if home_win:
+            home_val = 5
+    else:
+        if away_win:
+            away_val = 5
+    ratings[home] += add_val(home_goals, home_win, False, date) + home_val
+    ratings[away] += add_val(away_goals, away_win, away_win, date) + away_goals
 accuracy = (correct / total) * 100
 print(f"Accuracy (no draws): {accuracy:.2f}%")
 def predict(home,away):
