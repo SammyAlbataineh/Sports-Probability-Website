@@ -1,10 +1,22 @@
 import pandas as pd
 import numpy as np 
-df23 = pd.read_csv("E0 (2).csv")
-df24 = pd.read_csv("E0 (1).csv")
-df25 = pd.read_csv("E0.csv")
-df = pd.concat([df23, df24, df25], ignore_index=True)
-df["Date"] = pd.to_datetime(df["Date"], dayfirst=True)
+Pdf23 = pd.read_csv("E0 (2).csv")
+Pdf24 = pd.read_csv("E0 (1).csv")
+Pdf25 = pd.read_csv("E0.csv")
+Ldf23 = pd.read_csv("season-2223.csv")
+Ldf24 = pd.read_csv("season-2324.csv")
+Ldf25 = pd.read_csv("season-2425.csv")
+Ladf23 = pd.read_csv("season-2223 (1).csv")
+Ladf24 = pd.read_csv("season-2324 (1).csv")
+Ladf25 = pd.read_csv("season-2425 (1).csv")
+Iadf23 = pd.read_csv("season-2223 (2).csv")
+Iadf24 = pd.read_csv("season-2324 (2).csv")
+Iadf25 = pd.read_csv("season-2425 (2).csv")
+Badf23 = pd.read_csv("season-2223 (3).csv")
+Badf24 = pd.read_csv("season-2324 (3).csv")
+Badf25 = pd.read_csv("season-2425 (3).csv")
+df = pd.concat([Pdf23, Pdf24, Pdf25,Ldf23,Ldf24,Ldf25,Ladf23,Ladf24,Ladf25,Iadf23,Iadf24,Iadf25,Badf23,Badf24,Badf25], ignore_index=True)
+df["Date"] = pd.to_datetime(df["Date"], dayfirst=True,format="mixed",errors="coerce")
 df = df.sort_values("Date").reset_index(drop=True)
 train_df = df[df["Date"].dt.year <= 2024]
 test_df  = df[df["Date"].dt.year == 2025]
