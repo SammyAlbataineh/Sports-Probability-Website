@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Document</title>
+</head>
+<body>
+    <h1> Predictor </h1>
+    <div id="matches">
+        {%for match in matches%}
+            <div id="matchCard">
+                <div id="teams">
+                    <h2> {{match.home}} </h2>
+                    <h2> {{match.away}} </h2>
+                </div>
+                <div id="results">
+                    <h2> {{match.home_win}} </h2>
+                    <h2> {{match.draw}} </h2>
+                    <h2> {{match.away_win}} </h2>
+                </div>
+            </div>
+        {%endfor%}
+    </div>
+</body>
+</html>

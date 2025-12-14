@@ -87,15 +87,15 @@ def predict_match(home, away, ratings):
         ratings[home] * BASE_MULT,
         ratings[away]
     )
-    print(f"{home} vs {away}")
-    print(f"Home win: {p_home:.2%}")
-    print(f"Draw:     {p_draw:.2%}")
-    print(f"Away win: {p_away:.2%}")
-
-    if p_home >= p_draw and p_home >= p_away:
-        print(f"Prediction: {home} win")
-    elif p_draw >= p_home and p_draw >= p_away:
-        print("Prediction: Draw")
-    else:
-        print(f"Prediction: {away} win")
-    print("-" * 40)
+    return {
+        "home": home,
+        "away": away,
+        "home_win": f"{round(p_home * 100, 1)}%",
+        "draw": f"{round(p_draw * 100, 1)}%",
+        "away_win": f"{round(p_away * 100, 1)}%",
+        "prediction": (
+            home if p_home >= p_draw and p_home >= p_away
+            else "Draw" if p_draw >= p_home and p_draw >= p_away
+            else away
+        )
+    }

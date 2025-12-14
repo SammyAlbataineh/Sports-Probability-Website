@@ -1,0 +1,17 @@
+#matchCard {
+    border: 1px solid black; 
+    width: 30%;
+}
+#teams {
+    display: flex;
+    justify-content: space-around;
+}
+#results {
+    display: flex;
+    justify-content: space-around; 
+}
+#matches {
+    display: flex;
+    justify-content: space-around; 
+    flex-wrap: wrap; 
+}
