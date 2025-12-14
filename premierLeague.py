@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np 
 df23 = pd.read_csv("E0 (2).csv")
 df24 = pd.read_csv("E0 (1).csv")
 df25 = pd.read_csv("E0.csv")
@@ -16,6 +17,9 @@ GOAL_WEIGHT = 1.0
 MIN_MULT = 1.0
 REFERENCE_YEAR = 2025
 REFERENCE_MONTH = 12
+K = 0.002
+D_MAX = 0.28
+DRAW_SCALE = 400 
 def recency_multiplier(match_date):
     months_ago = (REFERENCE_YEAR - match_date.year) * 12 + (REFERENCE_MONTH - match_date.month)
     mult = BASE_MULT - (months_ago / 10) - (months_ago / 12)
@@ -63,13 +67,35 @@ for _, row in test_df.iterrows():
         if away_win:
             away_val = 5
     ratings[home] += add_val(home_goals, home_win, False, date) + home_val
-    ratings[away] += add_val(away_goals, away_win, away_win, date) + away_goals
+    ratings[away] += add_val(away_goals, away_win, away_win, date) + away_val
 accuracy = (correct / total) * 100
 print(f"Accuracy (no draws): {accuracy:.2f}%")
-def predict(home,away):
-    prediction = home if ratings[home] * BASE_MULT >= ratings[away] else away
-    print(f"{prediction} will beat {away if away != prediction else home}")
-predict("Crystal Palace","Man City")
-predict("Sunderland","Newcastle")
-predict("West Ham","Aston Villa")
-predict("Nott'm Forest","Tottenham")
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+def match_probabilities(home_rating, away_rating):
+    diff = home_rating - away_rating
+    abs_diff = abs(diff)
+    p_draw = D_MAX * np.exp(-abs_diff / DRAW_SCALE)
+    p_home_raw = sigmoid(K * diff)
+    p_away_raw = 1 - p_home_raw
+    remaining = 1 - p_draw
+    p_home = remaining * p_home_raw
+    p_away = remaining * p_away_raw
+    return p_home, p_draw, p_away
+def predict_match(home, away, ratings):
+    p_home, p_draw, p_away = match_probabilities(
+        ratings[home] * BASE_MULT,
+        ratings[away]
+    )
+    print(f"{home} vs {away}")
+    print(f"Home win: {p_home:.2%}")
+    print(f"Draw:     {p_draw:.2%}")
+    print(f"Away win: {p_away:.2%}")
+
+    if p_home >= p_draw and p_home >= p_away:
+        print(f"Prediction: {home} win")
+    elif p_draw >= p_home and p_draw >= p_away:
+        print("Prediction: Draw")
+    else:
+        print(f"Prediction: {away} win")
+    print("-" * 40)
