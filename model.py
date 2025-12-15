@@ -18,150 +18,107 @@ Iadf25 = pd.read_csv("season-2425 (2).csv")
 Badf23 = pd.read_csv("season-2223 (3).csv")
 Badf24 = pd.read_csv("season-2324 (3).csv")
 Badf25 = pd.read_csv("season-2425 (3).csv")
-def get_teams_from_csv(path):
-    teams = set()
-    with open(path, newline='', encoding='utf-8') as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            teams.add(row["HomeTeam"])
-            teams.add(row["AwayTeam"])
-    return teams
-bundesliga_teams = get_teams_from_csv("season-2425 (3).csv")
-serie_a_teams = get_teams_from_csv("season-2425 (2).csv")
-la_liga_teams = get_teams_from_csv("season-2425 (1).csv")
-ligue1_teams = get_teams_from_csv("season-2425.csv")
-prem_teams = get_teams_from_csv("E0.csv")
-df = pd.concat([Pdf23, Pdf24, Pdf25,Ldf23,Ldf24,Ldf25,Ladf23,Ladf24,Ladf25,Iadf23,Iadf24,Iadf25,Badf23,Badf24,Badf25], ignore_index=True)
-df["Date"] = pd.to_datetime(df["Date"], dayfirst=True,format="mixed",errors="coerce")
-df = df.sort_values("Date").reset_index(drop=True)
-train_df = df[df["Date"].dt.year <= 2024]
-test_df  = df[df["Date"].dt.year == 2025]
-teams = pd.concat([df["HomeTeam"], df["AwayTeam"]]).unique()
-ratings = {team: 0.0 for team in teams}
-BASE_MULT = 1.2
-WIN_BONUS = 10
-AWAY_BONUS = 8
-GOAL_WEIGHT = 1.0
-MIN_MULT = 1.0
-REFERENCE_YEAR = 2025
-REFERENCE_MONTH = 12
-K = 0.002
-D_MAX = 0.28
-DRAW_SCALE = 400 
-def recency_multiplier(match_date):
-    months_ago = (REFERENCE_YEAR - match_date.year) * 12 + (REFERENCE_MONTH - match_date.month)
-    mult = BASE_MULT - (months_ago / 10) - (months_ago / 12)
-    return max(MIN_MULT, mult)
-def add_val(goals_scored, won, away, date):
-    val = goals_scored * GOAL_WEIGHT
-    if won:
-        val += WIN_BONUS
-        if away:
-            val += AWAY_BONUS
-    mult = recency_multiplier(date)
-    return val * mult
-for _, row in train_df.iterrows():
-    home_team = row["HomeTeam"]
-    away_team = row["AwayTeam"]
-    home_goals = row["FTHG"]
-    away_goals = row["FTAG"]
-    home_win = home_goals > away_goals
-    away_win = away_goals > home_goals
-    date = row["Date"]
-    ratings[home_team] += add_val(home_goals, home_win, False, date)
-    ratings[away_team] += add_val(away_goals, away_win, away_win, date)
-total = 0
-correct = 0
-for _, row in test_df.iterrows():
-    home = row["HomeTeam"]
-    away = row["AwayTeam"]
-    prediction = home if ratings[home] * BASE_MULT >= ratings[away] else away
-    if row["FTHG"] != row["FTAG"]:
-        actual = home if row["FTHG"] > row["FTAG"] else away
-        if prediction == actual:
-            correct += 1
-        total += 1
-    home_goals = row["FTHG"]
-    away_goals = row["FTAG"]
-    home_win = home_goals > away_goals
-    away_win = away_goals > home_goals
-    date = row["Date"]
-    home_val = 0
-    away_val = 0
-    if ratings[home] > ratings[away]:
-        if home_win:
-            home_val = 5
-    else:
-        if away_win:
-            away_val = 5
-    ratings[home] += add_val(home_goals, home_win, False, date) + home_val
-    ratings[away] += add_val(away_goals, away_win, away_win, date) + away_val
-accuracy = (correct / total) * 100
-print(f"Accuracy (no draws): {accuracy:.2f}%")
-def split_ratings_by_league(ratings, league_teams):
-    return {team: ratings[team] for team in league_teams if team in ratings}
-def normalize(league_ratings):
-    mean = statistics.mean(league_ratings.values())
-    normalized = {} 
-    for team in league_ratings.keys():
-        normalized[team] = league_ratings[team] / mean 
-    return normalized
-bundesliga_ratings = split_ratings_by_league(ratings, bundesliga_teams)
-ligue1_ratings = split_ratings_by_league(ratings, ligue1_teams)
-serie_a_ratings = split_ratings_by_league(ratings,serie_a_teams)
-laliga_ratings = split_ratings_by_league(ratings, la_liga_teams)
-prem_ratings = split_ratings_by_league(ratings,prem_teams)
-bund_attack = normalize(bundesliga_ratings)
-bund_defense = {team: 1 / value for team, value in bund_attack.items()}
-la_attack = normalize(laliga_ratings)
-la_defense = {team: 1 / value for team, value in la_attack.items()}
-se_attack = normalize(serie_a_ratings)
-se_defense = {team: 1 / value for team, value in se_attack.items()}
-lig_attack = normalize(ligue1_ratings)
-lig_defense = {team: 1 / value for team, value in lig_attack.items()}
-prem_attack = normalize(prem_ratings)
-prem_defense = {team: 1 / value for team, value in prem_attack.items()}
-mu_home = {
-    "EPL": 1.55,
-    "Bundesliga": 1.60,
-    "SerieA": 1.40,
-    "LaLiga": 1.30,
-    "Ligue1": 1.45
+league_dfs = {
+    "EPL": pd.concat([Pdf23, Pdf24]),
+    "Ligue1": pd.concat([Ldf23, Ldf24]),
+    "LaLiga": pd.concat([Ladf23, Ladf24]),
+    "SerieA": pd.concat([Iadf23, Iadf24]),
+    "Bundesliga": pd.concat([Badf23, Badf24])
 }
-mu_away = {
-    "EPL": 1.20,
-    "Bundesliga": 1.30,
-    "SerieA": 1.10,
-    "LaLiga": 1.00,
-    "Ligue1": 1.10
-}
-def expected_goals(home_team, away_team, league):
-    if league == "EPL":
-        attack = prem_attack
-        defense = prem_defense
-    elif league == "Bundesliga":
-        attack = bund_attack
-        defense = bund_defense
-    elif league == "SerieA":
-        attack = se_attack
-        defense = se_defense
-    elif league == "LaLiga":
-        attack = la_attack
-        defense = la_defense
-    elif league == "Ligue1":
-        attack = lig_attack
-        defense = lig_defense
-    else:
-        raise ValueError("League not found")
+mu_home = {}
+mu_away = {}
+for league, ldf in league_dfs.items():
+    ldf = ldf.copy()
+    ldf["Date"] = pd.to_datetime(ldf["Date"], dayfirst=True, errors="coerce")
+    ldf = ldf[ldf["Date"].dt.year <= 2024]
+    mu_home[league] = ldf["FTHG"].mean()
+    mu_away[league] = ldf["FTAG"].mean()
+team_stats = {} 
+for league in league_dfs.keys():
+    for _,row in league_dfs[league].iterrows():
+        home_team = row["HomeTeam"]
+        away_team = row["AwayTeam"]
+        home_goals = row["FTHG"]
+        away_goals = row["FTAG"]
+        if home_team not in team_stats:
+            team_stats[home_team] = {
+                "home_scored": home_goals,
+                "home_conceded": away_goals,
+                "away_scored": 0,
+                "away_conceded": 0,
+                "home_games": 1,
+                "away_games": 0,
+                "league": league
+            }
+        else:
+            team_stats[home_team]["home_scored"] += home_goals 
+            team_stats[home_team]["home_conceded"] += away_goals 
+            team_stats[home_team]["home_games"] += 1 
+        if away_team not in team_stats:
+            team_stats[away_team] = {
+                "home_scored": 0,
+                "home_conceded": 0,
+                "away_scored": away_goals,
+                "away_conceded": home_goals,
+                "home_games": 0,
+                "away_games": 1,
+                "league": league
+            }
+        else:
+            team_stats[away_team]["away_scored"] += away_goals
+            team_stats[away_team]["away_conceded"] += home_goals  
+            team_stats[away_team]["away_games"] += 1 
+league_avgs = {}
+for league, df in league_dfs.items():
+    league_avgs[league] = {
+        "home_goals": df["FTHG"].mean(),
+        "away_goals": df["FTAG"].mean()
+    }
+team_strengths = {}
+for team, stats in team_stats.items():
+    league = stats["league"]
+    home_games = max(stats["home_games"], 1)
+    away_games = max(stats["away_games"], 1)
+    team_strengths[team] = {
+        "home_attack":
+            (stats["home_scored"] / home_games) /
+            league_avgs[league]["home_goals"],
+
+        "home_defense":
+            (stats["home_conceded"] / home_games) /
+            league_avgs[league]["away_goals"],
+
+        "away_attack":
+            (stats["away_scored"] / away_games) /
+            league_avgs[league]["away_goals"],
+
+        "away_defense":
+            (stats["away_conceded"] / away_games) /
+            league_avgs[league]["home_goals"],
+
+        "league": league
+    }
     
-    lambda_home = int(mu_home[league] * attack[home_team] * defense[away_team])
-    lambda_away = int(mu_away[league] * attack[away_team] * defense[home_team])
-    
-    return lambda_home, lambda_away
-def poisson(mu,lamb):
-    return ((mu ** lamb) * np.exp(-1 * mu)) / math.factorial(lamb)
-def match_probabilities(home_team,away_team,league,max_goals=5):
-    lambda_home,lambda_away = expected_goals(home_team,away_team,league)
+def expected_goals(home_team, away_team):
+    league = team_strengths[home_team]["league"]
+    lambda_home = (
+        league_avgs[league]["home_goals"] *
+        team_strengths[home_team]["home_attack"] *
+        team_strengths[away_team]["away_defense"]
+    )
+
+    lambda_away = (
+        league_avgs[league]["away_goals"] *
+        team_strengths[away_team]["away_attack"] *
+        team_strengths[home_team]["home_defense"]
+    )
+    lambda_home = min(max(lambda_home, 0.2), 4.0)
+    lambda_away = min(max(lambda_away, 0.2), 3.5)
+    return lambda_home,lambda_away
+def poisson(k, lam):
+    return ((lam ** k) * np.exp(-lam)) / math.factorial(k)
+def match_probabilities(home_team,away_team,max_goals=5):
+    lambda_home,lambda_away = expected_goals(home_team,away_team)
     home_win = 0
     draw = 0
     away_win = 0
@@ -179,4 +136,3 @@ def match_probabilities(home_team,away_team,league,max_goals=5):
     draw /= total
     away_win /= total
     return {"Home Win": float(round(home_win * 100,2)), "Draw": float(round(draw * 100,2)), "Away Win": float(round(away_win * 100,2))}
-print(match_probabilities("Liverpool","Brighton","EPL"))
