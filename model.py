@@ -1,5 +1,8 @@
 import pandas as pd
 import numpy as np 
+import math 
+import statistics
+import csv 
 Pdf23 = pd.read_csv("E0 (2).csv")
 Pdf24 = pd.read_csv("E0 (1).csv")
 Pdf25 = pd.read_csv("E0.csv")
@@ -15,6 +18,19 @@ Iadf25 = pd.read_csv("season-2425 (2).csv")
 Badf23 = pd.read_csv("season-2223 (3).csv")
 Badf24 = pd.read_csv("season-2324 (3).csv")
 Badf25 = pd.read_csv("season-2425 (3).csv")
+def get_teams_from_csv(path):
+    teams = set()
+    with open(path, newline='', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            teams.add(row["HomeTeam"])
+            teams.add(row["AwayTeam"])
+    return teams
+bundesliga_teams = get_teams_from_csv("season-2425 (3).csv")
+serie_a_teams = get_teams_from_csv("season-2425 (2).csv")
+la_liga_teams = get_teams_from_csv("season-2425 (1).csv")
+ligue1_teams = get_teams_from_csv("season-2425.csv")
+prem_teams = get_teams_from_csv("E0.csv")
 df = pd.concat([Pdf23, Pdf24, Pdf25,Ldf23,Ldf24,Ldf25,Ladf23,Ladf24,Ladf25,Iadf23,Iadf24,Iadf25,Badf23,Badf24,Badf25], ignore_index=True)
 df["Date"] = pd.to_datetime(df["Date"], dayfirst=True,format="mixed",errors="coerce")
 df = df.sort_values("Date").reset_index(drop=True)
@@ -111,3 +127,85 @@ def predict_match(home, away, ratings):
             else away
         )
     }
+def split_ratings_by_league(ratings, league_teams):
+    return {team: ratings[team] for team in league_teams if team in ratings}
+def normalize(league_ratings):
+    mean = statistics.mean(league_ratings.values())
+    normalized = {} 
+    for team in league_ratings.keys():
+        normalized[team] = league_ratings[team] / mean 
+    return normalized
+bundesliga_ratings = split_ratings_by_league(ratings, bundesliga_teams)
+ligue1_ratings = split_ratings_by_league(ratings, ligue1_teams)
+serie_a_ratings = split_ratings_by_league(ratings,serie_a_teams)
+laliga_ratings = split_ratings_by_league(ratings, la_liga_teams)
+prem_ratings = split_ratings_by_league(ratings,prem_teams)
+bund_attack = normalize(bundesliga_ratings)
+bund_defense = {team: 1 / value for team, value in bund_attack.items()}
+la_attack = normalize(laliga_ratings)
+la_defense = {team: 1 / value for team, value in la_attack.items()}
+se_attack = normalize(serie_a_ratings)
+se_defense = {team: 1 / value for team, value in se_attack.items()}
+lig_attack = normalize(ligue1_ratings)
+lig_defense = {team: 1 / value for team, value in lig_attack.items()}
+prem_attack = normalize(prem_ratings)
+prem_defense = {team: 1 / value for team, value in prem_attack.items()}
+mu_home = {
+    "EPL": 1.55,
+    "Bundesliga": 1.60,
+    "SerieA": 1.40,
+    "LaLiga": 1.30,
+    "Ligue1": 1.45
+}
+mu_away = {
+    "EPL": 1.20,
+    "Bundesliga": 1.30,
+    "SerieA": 1.10,
+    "LaLiga": 1.00,
+    "Ligue1": 1.10
+}
+def expected_goals(home_team, away_team, league):
+    if league == "EPL":
+        attack = prem_attack
+        defense = prem_defense
+    elif league == "Bundesliga":
+        attack = bund_attack
+        defense = bund_defense
+    elif league == "SerieA":
+        attack = se_attack
+        defense = se_defense
+    elif league == "LaLiga":
+        attack = la_attack
+        defense = la_defense
+    elif league == "Ligue1":
+        attack = lig_attack
+        defense = lig_defense
+    else:
+        raise ValueError("League not found")
+    
+    lambda_home = int(mu_home[league] * attack[home_team] * defense[away_team])
+    lambda_away = int(mu_away[league] * attack[away_team] * defense[home_team])
+    
+    return lambda_home, lambda_away
+def poisson(mu,lamb):
+    return ((mu ** lamb) * np.exp(-1 * mu)) / math.factorial(lamb)
+def match_probabilities(home_team,away_team,league,max_goals=5):
+    lambda_home,lambda_away = expected_goals(home_team,away_team,league)
+    home_win = 0
+    draw = 0
+    away_win = 0
+    for h in range(max_goals+1):
+        for a in range(max_goals+1):
+            prob = poisson(h, lambda_home) * poisson(a, lambda_away)
+            if h > a:
+                home_win += prob
+            elif h == a:
+                draw += prob
+            else:
+                away_win += prob
+    total = home_win + draw + away_win
+    home_win /= total
+    draw /= total
+    away_win /= total
+    return {"Home Win": float(round(home_win * 100,2)), "Draw": float(round(draw * 100,2)), "Away Win": float(round(away_win * 100,2))}
+print(match_probabilities("Liverpool","Brighton","EPL"))
