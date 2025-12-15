@@ -98,35 +98,6 @@ for _, row in test_df.iterrows():
     ratings[away] += add_val(away_goals, away_win, away_win, date) + away_val
 accuracy = (correct / total) * 100
 print(f"Accuracy (no draws): {accuracy:.2f}%")
-def sigmoid(x):
-    return 1 / (1 + np.exp(-x))
-def match_probabilities(home_rating, away_rating):
-    diff = home_rating - away_rating
-    abs_diff = abs(diff)
-    p_draw = D_MAX * np.exp(-abs_diff / DRAW_SCALE)
-    p_home_raw = sigmoid(K * diff)
-    p_away_raw = 1 - p_home_raw
-    remaining = 1 - p_draw
-    p_home = remaining * p_home_raw
-    p_away = remaining * p_away_raw
-    return p_home, p_draw, p_away
-def predict_match(home, away, ratings):
-    p_home, p_draw, p_away = match_probabilities(
-        ratings[home] * BASE_MULT,
-        ratings[away]
-    )
-    return {
-        "home": home,
-        "away": away,
-        "home_win": f"{round(p_home * 100, 1)}%",
-        "draw": f"{round(p_draw * 100, 1)}%",
-        "away_win": f"{round(p_away * 100, 1)}%",
-        "prediction": (
-            home if p_home >= p_draw and p_home >= p_away
-            else "Draw" if p_draw >= p_home and p_draw >= p_away
-            else away
-        )
-    }
 def split_ratings_by_league(ratings, league_teams):
     return {team: ratings[team] for team in league_teams if team in ratings}
 def normalize(league_ratings):
