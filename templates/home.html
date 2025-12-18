@@ -10,7 +10,11 @@
     <title>Soccer predictor</title>
 </head>
 <body>
-    <h1> Soccer Match Predictor </h1>
+    <div id="titleBar">
+        <h1> Soccer Match Predictor </h1>
+        <a href="{{ url_for('signup') }}" class="signuplogin"> <button> Sign up </button> </a>
+        <a href="{{ url_for('login') }}" class="signuplogin"> <button> Login </button></a>
+    </div>
     <div id="matches">
         {%for match in matches%}
             <a href="{{ url_for('match_detail', match_id=match.Id) }}" class="cardLink">
