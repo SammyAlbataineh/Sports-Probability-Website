@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <title>{{ match.Home }} vs {{ match.Away }}</title>
+</head>
+<body>
+    <h1 id="title">{{ match.Home }} vs {{ match.Away }}</h1>
+    <div id="stats">
+        <p><strong>Home win:</strong> Chance of {{ match.Home }} winning: {{ match.HomeWin }}%</p>
+        <p><strong>Draw:</strong> Chance of match beign a draw: {{ match.Draw }}%</p>
+        <p><strong>Away win:</strong> Chance of {{ match.Away }} winning {{ match.AwayWin }}%</p>
+    </div>
+    <hr>
+
+    <p>
+    Predictions are made using the Poisson Distribution and are based on recent performance, and home advantage. 
+    </p>
+
+</body>
+</html>

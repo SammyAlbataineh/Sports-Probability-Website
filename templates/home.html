@@ -4,23 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <title>Document</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <title>Soccer predictor</title>
 </head>
 <body>
-    <h1> Predictor </h1>
+    <h1> Soccer Match Predictor </h1>
     <div id="matches">
         {%for match in matches%}
-            <div id="matchCard">
-                <div id="teams">
-                    <h2> {{match.home}} </h2>
-                    <h2> {{match.away}} </h2>
+            <a href="{{ url_for('match_detail', match_id=match.Id) }}" class="cardLink">
+                <div id="matchCard">
+                    <div id="teams">
+                        <div class="team">
+                            <img src="{{ match.Homeimg }}" class="teamLogo"/> 
+                            <h4> {{match.Home}}</h2>
+                        </div>
+                        <h3 class="vs"> VS </h3>
+                        <div class="team">
+                            <img src="{{ match.Awayimg }}" class="teamLogo"/> 
+                            <h4> {{match.Away}} </h2>
+                        </div>
+                    </div>
+                    <div class="result">
+                        <h3 style="width: {{ match.HomeWin }}%; background-color: #22c55e;" class="chunk">{{ match.HomeWin }}%</h3>
+                        <h3 style="width: {{ match.Draw }}%; background-color: #64748b;" class="chunk">{{ match.Draw }}%</h3>
+                        <h3 style="width: {{ match.AwayWin }}%; background-color: #ef4444;" class="chunk">{{ match.AwayWin }}%</h3>
+
+                    </div>
+
                 </div>
-                <div id="results">
-                    <h2> {{match.home_win}} </h2>
-                    <h2> {{match.draw}} </h2>
-                    <h2> {{match.away_win}} </h2>
-                </div>
-            </div>
+            </a>  
         {%endfor%}
     </div>
 </body>

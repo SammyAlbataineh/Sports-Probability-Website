@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np 
 import math 
-import statistics
-import csv 
+import hashlib
+import random 
 Pdf23 = pd.read_csv("E0 (2).csv")
 Pdf24 = pd.read_csv("E0 (1).csv")
 Pdf25 = pd.read_csv("E0.csv")
@@ -117,6 +117,9 @@ def expected_goals(home_team, away_team):
     return lambda_home,lambda_away
 def poisson(k, lam):
     return ((lam ** k) * np.exp(-lam)) / math.factorial(k)
+def generate_match_id(home, away, date):
+    s = f"{home}-{away}-{date}"
+    return int(hashlib.md5(s.encode()).hexdigest()[:8], 16)
 def match_probabilities(home_team,away_team,max_goals=5):
     lambda_home,lambda_away = expected_goals(home_team,away_team)
     home_win = 0
@@ -135,4 +138,5 @@ def match_probabilities(home_team,away_team,max_goals=5):
     home_win /= total
     draw /= total
     away_win /= total
-    return {"Home Win": float(round(home_win * 100,2)), "Draw": float(round(draw * 100,2)), "Away Win": float(round(away_win * 100,2))}
+    idd = generate_match_id(home_team,away_team,"12/17/2025")
+    return {"Home": home_team, "Away": away_team,"HomeWin": float(round(home_win * 100,1)), "Draw": float(round(draw * 100,1)), "AwayWin": float(round(away_win * 100,1)), "Id": hash(idd)}
