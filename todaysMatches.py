@@ -1,2 +1,2 @@
 def get_todays_matches():
-    return [{"Home": "Barcelona", "Away": "Real Madrid"}] 
+    return [{"Home": "Barcelona", "Away": "Real Madrid"},{"Home": "Arsenal", "Away": "Man City"},{"Home": "Aston Villa", "Away": "Chelsea"},{"Home": "Rennes", "Away": "Lille"},{"Home": "Brentford", "Away": "Man City"},{"Home": "Real Madrid", "Away": "Girona"}] 
