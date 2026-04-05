@@ -1,4 +1,3 @@
-
 .noto-sans-<uniquifier> {
   font-family: "Noto Sans", sans-serif;
   font-optical-sizing: auto;
@@ -7,9 +6,22 @@
   font-variation-settings:
     "wdth" 100;
 }
+#title {
+    text-align: center; 
+}
+#titleBar {
+    display: flex; 
+    align-items: center; 
+    justify-contnet: space-between
+}
 body {
     letter-spacing: 0.02em; 
-    font-family: "Noto Sans", sans-serif
+    font-family: "Noto Sans", sans-serf
+}
+#buttons {
+    display: flex;
+    justify-content: flex-end; 
+    width: 50%; 
 }
 #matchCard {
     background-color: #ffffff;
@@ -24,7 +36,86 @@ body {
     cursor: pointer; 
     text-decoration: none;
     color: black; 
+    min-height: 250px; 
+    max-height: 250px;
 }
+form {
+    display: flex;
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    max-width: 420px;
+    margin: 60px auto;
+    padding: 32px;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #374151; /* gray-700 */
+}
+
+input {
+    width: 100%;
+    padding: 12px 14px;
+    margin-bottom: 18px;
+    font-size: 1rem;
+    border-radius: 10px;
+    border: 1.5px solid #d1d5db; /* gray-300 */
+    background-color: #f9fafb;
+    transition: 
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        background-color 0.2s ease;
+}
+
+input:focus {
+    outline: none;
+    border-color: #6366f1; /* indigo */
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+}
+
+.signLog {
+    width: 100%;
+    padding: 14px;
+    margin-top: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        opacity 0.15s ease;
+}
+
+.signLog:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(79, 70, 229, 0.35);
+}
+
+.signLog:active {
+    transform: translateY(0);
+    box-shadow: 0 6px 12px rgba(79, 70, 229, 0.25);
+}
+
+@media (max-width: 480px) {
+    form {
+        margin: 30px 16px;
+        padding: 24px;
+    }
+}
+
 .cardLink {
     text-decoration: none;
     color: inherit;
@@ -55,7 +146,7 @@ body {
 }
 .teamLogo {
     width: 80px;
-    height: auto;
+    height: auto; 
 }
 .chunk {
     height: 27px;
