@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Upcoming Fixtures — FootyOdds{% endblock %}
+
+{% block content %}
+<div id="pageHeader">
+    <h1 id="pageTitle">Upcoming Fixtures</h1>
+    <p id="pageSubtitle">Next 7 days across Europe's top 5 leagues</p>
+</div>
+
+{% if matches %}
+{% set ns = namespace(current_date="") %}
+<div id="matches">
+    {% for match in matches %}
+        {% if match.MatchDate != ns.current_date %}
+            {% set ns.current_date = match.MatchDate %}
+            <div class="dateDivider"><span>{{ match.MatchDate }}</span></div>
+        {% endif %}
+        <a href="{{ url_for('match_detail', match_id=match.Id) }}" class="cardLink">
+            <div id="matchCard">
+                <div class="cardLeague">{{ match.League }}</div>
+                <div id="teams">
+                    <div class="team">
+                        <div class="logoWrap">
+                            <img class="teamLogo" src="{{ match.Homeimg }}" alt="{{ match.Home }}" onerror="this.style.display='none'">
+                        </div>
+                        <span class="chunk teamName">{{ match.Home }}</span>
+                    </div>
+                    <div class="vsBlock">
+                        <span class="vs">VS</span>
+                        {% if match.Detail %}
+                        <span class="kickoff">{{ match.Detail }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="team">
+                        <div class="logoWrap">
+                            <img class="teamLogo" src="{{ match.Awayimg }}" alt="{{ match.Away }}" onerror="this.style.display='none'">
+                        </div>
+                        <span class="chunk teamName">{{ match.Away }}</span>
+                    </div>
+                </div>
+                <div class="result">
+                    <div class="prob homeProb">
+                        <span class="probNum">{{ match.HomeWin }}%</span>
+                        <span class="probLabel">Home</span>
+                    </div>
+                    <div class="prob drawProb">
+                        <span class="probNum">{{ match.Draw }}%</span>
+                        <span class="probLabel">Draw</span>
+                    </div>
+                    <div class="prob awayProb">
+                        <span class="probNum">{{ match.AwayWin }}%</span>
+                        <span class="probLabel">Away</span>
+                    </div>
+                </div>
+            </div>
+        </a>
+    {% endfor %}
+</div>
+{% else %}
+<div id="noMatches">
+    <p>📅 No fixtures found for the next 7 days.</p>
+</div>
+{% endif %}
+{% endblock %}

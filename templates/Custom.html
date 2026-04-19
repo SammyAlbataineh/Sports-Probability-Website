@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Custom Match — FootyOdds{% endblock %}
+
+{% block content %}
+<div id="customPage">
+    <div id="pageHeader">
+        <h1 id="pageTitle">Custom Match</h1>
+        <p id="pageSubtitle">Pick any two teams and generate a prediction</p>
+    </div>
+
+    <div id="customForm">
+        <h2>Build a Fixture</h2>
+        <p class="formDesc">Select a home and away side from any of the five leagues.</p>
+
+        <div class="customTeamRow">
+            <div class="customField">
+                <label for="homeSelect">Home team</label>
+                <select id="homeSelect">
+                    <option value="" disabled selected>Select team</option>
+                    {% for league, teams in team_groups.items() %}
+                    <optgroup label="{{ league }}">
+                        {% for team in teams %}
+                        <option value="{{ team }}">{{ team }}</option>
+                        {% endfor %}
+                    </optgroup>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <span class="vsLabel">VS</span>
+
+            <div class="customField">
+                <label for="awaySelect">Away team</label>
+                <select id="awaySelect">
+                    <option value="" disabled selected>Select team</option>
+                    {% for league, teams in team_groups.items() %}
+                    <optgroup label="{{ league }}">
+                        {% for team in teams %}
+                        <option value="{{ team }}">{{ team }}</option>
+                        {% endfor %}
+                    </optgroup>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <button id="customSubmit">Generate prediction</button>
+        <p id="customError"></p>
+    </div>
+
+    <div id="customResult">
+        <!-- card injected here by JS -->
+    </div>
+</div>
+
+<script>
+const logos = {{ logos_json | safe }};
+
+document.getElementById('customSubmit').addEventListener('click', async () => {
+    const home = document.getElementById('homeSelect').value;
+    const away = document.getElementById('awaySelect').value;
+    const errEl = document.getElementById('customError');
+    const resultEl = document.getElementById('customResult');
+
+    errEl.style.display = 'none';
+    resultEl.style.display = 'none';
+
+    if (!home || !away) {
+        errEl.textContent = 'Please select both a home and away team.';
+        errEl.style.display = 'block';
+        return;
+    }
+    if (home === away) {
+        errEl.textContent = 'Home and away teams must be different.';
+        errEl.style.display = 'block';
+        return;
+    }
+
+    const btn = document.getElementById('customSubmit');
+    btn.disabled = true;
+    btn.textContent = 'Calculating...';
+
+    try {
+        const resp = await fetch(`/predict?home=${encodeURIComponent(home)}&away=${encodeURIComponent(away)}`);
+        const data = await resp.json();
+        if (!resp.ok) {
+            errEl.textContent = data.error || 'Could not generate prediction.';
+            errEl.style.display = 'block';
+            return;
+        }
+
+        const homeImg = logos[home] || '';
+        const awayImg = logos[away] || '';
+
+        const homeClass = data.home_win >= data.away_win ? 'homeProb' : 'awayProb';
+
+        resultEl.innerHTML = `
+        <div class="cardLink">
+          <div id="matchCard">
+            <div class="cardLeague">Custom Match</div>
+            <div id="teams">
+              <div class="team">
+                <div class="logoWrap">
+                  <img class="teamLogo" src="${homeImg}" alt="${home}" onerror="this.style.display='none'">
+                </div>
+                <span class="teamName">${home}</span>
+              </div>
+              <div class="vsBlock">
+                <span class="vs">VS</span>
+              </div>
+              <div class="team">
+                <div class="logoWrap">
+                  <img class="teamLogo" src="${awayImg}" alt="${away}" onerror="this.style.display='none'">
+                </div>
+                <span class="teamName">${away}</span>
+              </div>
+            </div>
+            <div class="result">
+              <div class="prob homeProb">
+                <span class="probNum" style="color:var(--green)">${data.home_win}%</span>
+                <span class="probLabel">Home</span>
+              </div>
+              <div class="prob drawProb">
+                <span class="probNum">${data.draw}%</span>
+                <span class="probLabel">Draw</span>
+              </div>
+              <div class="prob awayProb">
+                <span class="probNum" style="color:var(--red)">${data.away_win}%</span>
+                <span class="probLabel">Away</span>
+              </div>
+            </div>
+          </div>
+        </div>`;
+
+        resultEl.style.display = 'flex';
+    } catch (e) {
+        errEl.textContent = 'Network error — could not reach the server.';
+        errEl.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Generate prediction';
+    }
+});
+</script>
+{% endblock %}

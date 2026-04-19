@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <title>{% block title %}FootyOdds{% endblock %}</title>
+</head>
+<body>
+    <nav id="navbar">
+        <a href="{{ url_for('home') }}" id="navBrand">FootyOdds</a>
+        <div id="navLinks">
+            <a href="{{ url_for('home') }}" class="navLink {% if request.endpoint == 'home' %}active{% endif %}">Today</a>
+            <a href="{{ url_for('fixtures') }}" class="navLink {% if request.endpoint == 'fixtures' %}active{% endif %}">Fixtures</a>
+            <a href="{{ url_for('custom') }}" class="navLink {% if request.endpoint == 'custom' %}active{% endif %}">Custom</a>
+        </div>
+        <div id="navAuth">
+            {% if logged_in %}
+                <span id="navUser">Hello {{ username }}</span>
+                <a href="{{ url_for('logout') }}" class="authBtn outlineBtn">Log out</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" class="authBtn outlineBtn">Log in</a>
+                <a href="{{ url_for('signup') }}" class="authBtn fillBtn">Sign up</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

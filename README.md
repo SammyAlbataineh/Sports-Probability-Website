@@ -1,42 +1,41 @@
-# Sports Match Predictor
+FootyOdds — Presentation Setup
+Requirements
 
-A web application that displays current sports matches along with live win probabilities for each team.
-The platform updates in real time and provides fans, analysts, and bettors with fast, data-driven insights.
+Docker Desktop (https://www.docker.com/products/docker-desktop/)
+Your CSV data files (see below)
 
-Features
-Live & Upcoming Matches
 
-Shows currently active matches across supported sports
+Setup (do this once)
 
-Automatically updates as new games begin or end
+Copy your .env file (or rename .env.example to .env and fill in values):
 
-Team names, match times, and league information included
+   SECRET_KEY=anything_random
+   PGDB=footyodds
+   PGUSER=footyodds
+   PGPASSWORD=anything_random
 
-Win Probability Engine
+Put your CSV files in the project root (same folder as app.py):
 
-Displays the likelihood of either team winning (e.g., Team A: 62% — Team B: 38%)
+   E0.csv          E0 (1).csv      E0 (2).csv
+   season-2425.csv season-2324.csv season-2223.csv
+   season-2425 (1).csv  season-2324 (1).csv  season-2223 (1).csv
+   season-2425 (2).csv  season-2324 (2).csv  season-2223 (2).csv
+   season-2425 (3).csv  season-2324 (3).csv  season-2223 (3).csv
 
-Probabilities can be generated from:
+Build and start:
 
-Machine-learning models
+bash   docker compose up --build
 
-Third-party APIs
+Open http://localhost:5000 in your browser.
 
-Statistical formulas (e.g., Elo ratings)
 
-Auto-Refreshing Data
+Stopping
+bashdocker compose down
+To also wipe the database (fresh start):
+bashdocker compose down -v
 
-Background tasks or API polling keep match data fresh
+Notes
 
-No manual refresh needed
-
-Fully Responsive UI
-
-Optimized for desktop, tablet, and mobile
-
-Clean, simple layout focused on readability
-
-Tech Stack
-Frontend	React, and typescript
-Backend	Node.js, and Python (Flask)
-Database	PostgreSQL, MongoDB, and Redis
+The first docker compose up --build takes ~2 minutes to download and install everything.
+After that, subsequent starts are instant.
+The database persists between restarts unless you run down -v.

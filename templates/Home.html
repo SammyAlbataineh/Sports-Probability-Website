@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Today's Matches — FootyOdds{% endblock %}
+
+{% block content %}
+<div id="pageHeader">
+    <h1 id="pageTitle">Today's Matches</h1>
+    <p id="pageSubtitle">Win probabilities powered by Poisson distribution modelling</p>
+</div>
+
+{% if matches %}
+<div id="matches">
+    {% for match in matches %}
+    <a href="{{ url_for('match_detail', match_id=match.Id) }}" class="cardLink">
+        <div id="matchCard">
+            <div class="cardLeague">{{ match.League }}</div>
+            <div id="teams">
+                <div class="team">
+                    <div class="logoWrap">
+                        <img class="teamLogo" src="{{ match.Homeimg }}" alt="{{ match.Home }}" onerror="this.style.display='none'">
+                    </div>
+                    <span class="chunk teamName">{{ match.Home }}</span>
+                </div>
+                <div class="vsBlock">
+                    <span class="vs">VS</span>
+                    {% if match.Detail %}
+                    <span class="kickoff">{{ match.Detail }}</span>
+                    {% endif %}
+                </div>
+                <div class="team">
+                    <div class="logoWrap">
+                        <img class="teamLogo" src="{{ match.Awayimg }}" alt="{{ match.Away }}" onerror="this.style.display='none'">
+                    </div>
+                    <span class="chunk teamName">{{ match.Away }}</span>
+                </div>
+            </div>
+            <div class="result">
+                <div class="prob homeProb">
+                    <span class="probNum">{{ match.HomeWin }}%</span>
+                    <span class="probLabel">Home</span>
+                </div>
+                <div class="prob drawProb">
+                    <span class="probNum">{{ match.Draw }}%</span>
+                    <span class="probLabel">Draw</span>
+                </div>
+                <div class="prob awayProb">
+                    <span class="probNum">{{ match.AwayWin }}%</span>
+                    <span class="probLabel">Away</span>
+                </div>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div id="noMatches">
+    <p>🏟️ No matches scheduled for today. Check out <a href="{{ url_for('fixtures') }}">upcoming fixtures</a>.</p>
+</div>
+{% endif %}
+{% endblock %}

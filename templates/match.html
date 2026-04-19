@@ -1,26 +1,60 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
-    <title>{{ match.Home }} vs {{ match.Away }}</title>
-</head>
-<body>
-    <h1 id="title">{{ match.Home }} vs {{ match.Away }}</h1>
-    <div id="stats">
-        <p><strong>Home win:</strong> Chance of {{ match.Home }} winning: {{ match.HomeWin }}%</p>
-        <p><strong>Draw:</strong> Chance of match being a draw: {{ match.Draw }}%</p>
-        <p><strong>Away win:</strong> Chance of {{ match.Away }} winning {{ match.AwayWin }}%</p>
+{% extends "base.html" %}
+{% block title %}{{ match.Home }} vs {{ match.Away }} — FootyOdds{% endblock %}
+
+{% block content %}
+<div id="matchDetailPage">
+    <a href="javascript:history.back()" class="backLink">← Back</a>
+
+    <div id="matchDetailCard">
+        <div class="cardLeague">{{ match.League }}</div>
+        {% if match.MatchDate %}
+        <div class="matchDetailDate">{{ match.MatchDate }}</div>
+        {% endif %}
+
+        <div id="matchDetailTeams">
+            <div class="detailTeam">
+                <div class="detailLogoWrap">
+                    <img src="{{ match.Homeimg }}" alt="{{ match.Home }}" class="detailLogo" onerror="this.style.display='none'">
+                </div>
+                <h2 class="detailTeamName">{{ match.Home }}</h2>
+                <span class="homeLabel">HOME</span>
+            </div>
+            <div class="detailVs">VS</div>
+            <div class="detailTeam">
+                <div class="detailLogoWrap">
+                    <img src="{{ match.Awayimg }}" alt="{{ match.Away }}" class="detailLogo" onerror="this.style.display='none'">
+                </div>
+                <h2 class="detailTeamName">{{ match.Away }}</h2>
+                <span class="awayLabel">AWAY</span>
+            </div>
+        </div>
+
+        <div id="matchDetailProbs">
+            <div class="detailProb">
+                <div class="detailProbBar" style="height: {{ match.HomeWin }}%"></div>
+                <span class="detailProbNum">{{ match.HomeWin }}%</span>
+                <span class="detailProbLabel">{{ match.Home }} Win</span>
+            </div>
+            <div class="detailProb">
+                <div class="detailProbBar drawBar" style="height: {{ match.Draw }}%"></div>
+                <span class="detailProbNum">{{ match.Draw }}%</span>
+                <span class="detailProbLabel">Draw</span>
+            </div>
+            <div class="detailProb">
+                <div class="detailProbBar awayBar" style="height: {{ match.AwayWin }}%"></div>
+                <span class="detailProbNum">{{ match.AwayWin }}%</span>
+                <span class="detailProbLabel">{{ match.Away }} Win</span>
+            </div>
+        </div>
+
+        {% if match.Venue and match.Venue != "N/A" %}
+        <p class="venueNote">🏟️ {{ match.Venue }}</p>
+        {% endif %}
     </div>
-    <hr>
 
-    <p>
-    Predictions are made using the Poisson Distribution and are based on recent performance, and home advantage. 
+    <p class="disclaimer">
+        Predictions use the Poisson distribution based on historical attack &amp; defence strength, 
+        home advantage, and cross-league normalisation. For entertainment purposes only.
     </p>
-
-</body>
-</html>
+</div>
+{% endblock %}

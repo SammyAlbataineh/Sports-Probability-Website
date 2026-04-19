@@ -1,0 +1,10 @@
+flask
+flask-session
+psycopg2-binary
+bcrypt
+python-dotenv
+pandas
+numpy
+requests
+gunicorn
+ 

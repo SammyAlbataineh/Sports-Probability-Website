@@ -1,95 +1,167 @@
 import requests
 from datetime import datetime, timedelta, timezone
-
-
-def _fetch_fixtures(league_slug: str) -> list[dict]:
-    """Generic fetcher for any ESPN soccer league slug."""
-    base_url = f"https://site.api.espn.com/apis/site/v2/sports/soccer/{league_slug}/scoreboard"
-    
-    today = datetime.now(timezone.utc)
-    week_later = today + timedelta(days=7)
-    date_range = f"{today.strftime('%Y%m%d')}-{week_later.strftime('%Y%m%d')}"
-    
-    response = requests.get(base_url, params={"dates": date_range})
-    response.raise_for_status()
-    data = response.json()
-    
+ESPN_TO_MODEL = {
+    "Arsenal": "Arsenal",
+    "Aston Villa": "Aston Villa",
+    "Bournemouth": "AFC Bournemouth",
+    "AFC Bournemouth": "AFC Bournemouth",
+    "Brentford": "Brentford",
+    "Brighton & Hove Albion": "Brighton & Hove Albion",
+    "Brighton and Hove Albion": "Brighton & Hove Albion",
+    "Burnley": "Burnley",
+    "Chelsea": "Chelsea",
+    "Crystal Palace": "Crystal Palace",
+    "Everton": "Everton",
+    "Fulham": "Fulham",
+    "Leeds United": "Leeds United",
+    "Liverpool": "Liverpool",
+    "Manchester City": "Man City",
+    "Manchester United": "Man United",
+    "Newcastle United": "Newcastle United",
+    "Nottingham Forest": "Nott'm Forest",
+    "Sunderland": "Sunderland",
+    "Tottenham Hotspur": "Tottenham Hotspur",
+    "West Ham United": "West Ham United",
+    "Wolverhampton Wanderers": "Wolves",
+    # La Liga
+    "Deportivo Alavés": "Alavés",
+    "Alaves": "Alavés",
+    "Athletic Club": "Athletic Bilbao",
+    "Atletico Madrid": "Atlético Madrid",
+    "Atlético de Madrid": "Atlético Madrid",
+    "FC Barcelona": "Barcelona",
+    "Barcelona": "Barcelona",
+    "Celta de Vigo": "Celta Vigo",
+    "Elche CF": "Elche",
+    "RCD Espanyol": "Espanyol",
+    "Getafe CF": "Getafe",
+    "Girona FC": "Girona",
+    "Levante UD": "Levante",
+    "RCD Mallorca": "Mallorca",
+    "CA Osasuna": "Osasuna",
+    "Rayo Vallecano": "Rayo Vallecano",
+    "Real Betis": "Real Betis",
+    "Real Madrid": "Real Madrid",
+    "Real Oviedo": "Real Oviedo",
+    "Real Sociedad": "Real Sociedad",
+    "Sevilla FC": "Sevilla",
+    "Valencia CF": "Valencia",
+    "Villarreal CF": "Villarreal",
+    # Serie A
+    "Atalanta": "Atalanta",
+    "Bologna FC": "Bologna",
+    "Cagliari Calcio": "Cagliari",
+    "Cagliari": "Cagliari",
+    "Como 1907": "Como",
+    "US Cremonese": "Cremonese",
+    "ACF Fiorentina": "Fiorentina",
+    "Fiorentina": "Fiorentina",
+    "Genoa CFC": "Genoa",
+    "Hellas Verona": "Hellas Verona",
+    "Inter Milan": "Milan",
+    "Juventus": "Juventus",
+    "SS Lazio": "Lazio",
+    "Lazio": "Lazio",
+    "US Lecce": "Lecce",
+    "AC Milan": "AC Milan",
+    "SSC Napoli": "Napoli",
+    "Napoli": "Napoli",
+    "Parma Calcio 1913": "Parma",
+    "Pisa SC": "Pisa",
+    "AS Roma": "Roma",
+    "US Sassuolo": "Sassuolo",
+    "Torino FC": "Torino",
+    "Udinese Calcio": "Udinese",
+    # Bundesliga
+    "FC Augsburg": "Augsburg",
+    "1. FC Union Berlin": "Union Berlin",
+    "Werder Bremen": "Werder Bremen",
+    "Borussia Dortmund": "Borussia Dortmund",
+    "Eintracht Frankfurt": "Eintracht Frankfurt",
+    "SC Freiburg": "Freiburg",
+    "Hamburger SV": "Hamburger SV",
+    "1. FC Heidenheim 1846": "Heidenheim",
+    "TSG Hoffenheim": "Hoffenheim",
+    "1. FC Köln": "Köln",
+    "RB Leipzig": "RB Leipzig",
+    "Bayer Leverkusen": "Bayer Leverkusen",
+    "1. FSV Mainz 05": "Mainz 05",
+    "Borussia Mönchengladbach": "Borussia Mönchengladbach",
+    "FC Bayern Munich": "Bayern Munich",
+    "FC St. Pauli": "St. Pauli",
+    "VfB Stuttgart": "Stuttgart",
+    "VfL Wolfsburg": "Wolfsburg",
+    # Ligue 1
+    "Angers SCO": "Angers",
+    "AJ Auxerre": "Auxerre",
+    "Stade Brestois 29": "Brest",
+    "Le Havre AC": "Le Havre",
+    "RC Lens": "Lens",
+    "Lille OSC": "Lille",
+    "FC Lorient": "Lorient",
+    "Olympique Lyonnais": "Lyon",
+    "Olympique de Marseille": "Marseille",
+    "FC Metz": "Metz",
+    "AS Monaco": "Monaco",
+    "FC Nantes": "Nantes",
+    "OGC Nice": "Nice",
+    "Paris FC": "Paris FC",
+    "Paris Saint-Germain": "Paris Saint-Germain",
+    "Stade Rennais FC": "Rennes",
+    "RC Strasbourg Alsace": "Strasbourg",
+    "Toulouse FC": "Toulouse",
+}
+LEAGUE_SLUGS = {
+    "EPL": "eng.1",
+    "LaLiga": "esp.1",
+    "Bundesliga": "ger.1",
+    "SerieA": "ita.1",
+    "Ligue1": "fra.1",
+}
+def _fetch_fixtures(league_key: str, days_ahead: int = 0, window: int = 1) -> list[dict]:
+    slug = LEAGUE_SLUGS[league_key]
+    base_url = f"https://site.api.espn.com/apis/site/v2/sports/soccer/{slug}/scoreboard"
+    today = datetime.now(timezone.utc) + timedelta(days=days_ahead)
+    end = today + timedelta(days=window)
+    date_range = f"{today.strftime('%Y%m%d')}-{end.strftime('%Y%m%d')}"
+    resp = requests.get(base_url, params={"dates": date_range}, timeout=10)
+    resp.raise_for_status()
+    data = resp.json()
     fixtures = []
     for event in data.get("events", []):
         comp = event["competitions"][0]
-        home = next(c for c in comp["competitors"] if c["homeAway"] == "home")
-        away = next(c for c in comp["competitors"] if c["homeAway"] == "away")
+        home_espn = next(c for c in comp["competitors"] if c["homeAway"] == "home")["team"]["displayName"]
+        away_espn = next(c for c in comp["competitors"] if c["homeAway"] == "away")["team"]["displayName"]
+        home = ESPN_TO_MODEL.get(home_espn, home_espn)
+        away = ESPN_TO_MODEL.get(away_espn, away_espn)
         status = event["status"]["type"]
         dt = datetime.fromisoformat(event["date"].replace("Z", "+00:00"))
-        
         fixtures.append({
-            "league":  data["leagues"][0]["name"],
-            "date":    dt,
-            "home":    home["team"]["displayName"],
-            "away":    away["team"]["displayName"],
-            "status":  status["state"],    # pre / in / post
-            "detail":  status["detail"],   # kick-off time or match minute
-            "venue":   comp.get("venue", {}).get("fullName", "N/A"),
+            "Home": home,
+            "Away": away,
+            "HomeESPN": home_espn,
+            "AwayESPN": away_espn,
+            "League": league_key,
+            "Date": dt,
+            "Status": status["state"],
+            "Detail": status["detail"],
+            "Venue": comp.get("venue", {}).get("fullName", "N/A"),
         })
-    
     return fixtures
-
-
-def get_premier_league():
-    """English Premier League"""
-    return _fetch_fixtures("eng.1")
-
-
-def get_la_liga():
-    """Spanish La Liga"""
-    return _fetch_fixtures("esp.1")
-
-
-def get_bundesliga():
-    """German Bundesliga"""
-    return _fetch_fixtures("ger.1")
-
-
-def get_serie_a():
-    """Italian Serie A"""
-    return _fetch_fixtures("ita.1")
-
-
-def get_ligue_1():
-    """French Ligue 1"""
-    return _fetch_fixtures("fra.1")
-
-
-def print_fixtures(fixtures: list[dict]):
-    if not fixtures:
-        print("  No fixtures found.\n")
-        return
-    
-    league_name = fixtures[0]["league"]
-    print(f"\n{'=' * 90}")
-    print(f"  {league_name}")
-    print(f"{'=' * 90}")
-    print(f"  {'Date':<18} {'Home':<28} {'Away':<28} {'Status'}")
-    print(f"  {'-' * 85}")
-    
-    for g in fixtures:
-        local = g["date"].astimezone()
-        date_str = local.strftime("%a %b %d %H:%M")
-        print(f"  {date_str:<18} {g['home']:<28} {g['away']:<28} {g['detail']}")
-
-
-if __name__ == "__main__":
-    leagues = [
-        get_premier_league,
-        get_la_liga,
-        get_bundesliga,
-        get_serie_a,
-        get_ligue_1,
-    ]
-    
-    for fn in leagues:
+def get_todays_matches() -> list[dict]:
+    results = []
+    for league in LEAGUE_SLUGS:
         try:
-            fixtures = fn()
-            print_fixtures(fixtures)
-        except Exception as e:
-            print(f"Error fetching {fn.__name__}: {e}")
+            results.extend(_fetch_fixtures(league, days_ahead=0, window=1))
+        except Exception:
+            pass
+    return results
+def get_upcoming_matches(days: int = 7) -> list[dict]:
+    results = []
+    for league in LEAGUE_SLUGS:
+        try:
+            results.extend(_fetch_fixtures(league, days_ahead=0, window=days))
+        except Exception:
+            pass
+    results.sort(key=lambda x: x["Date"])
+    return results
