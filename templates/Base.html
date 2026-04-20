@@ -17,15 +17,6 @@
             <a href="{{ url_for('fixtures') }}" class="navLink {% if request.endpoint == 'fixtures' %}active{% endif %}">Fixtures</a>
             <a href="{{ url_for('custom') }}" class="navLink {% if request.endpoint == 'custom' %}active{% endif %}">Custom</a>
         </div>
-        <div id="navAuth">
-            {% if logged_in %}
-                <span id="navUser">Hello {{ username }}</span>
-                <a href="{{ url_for('logout') }}" class="authBtn outlineBtn">Log out</a>
-            {% else %}
-                <a href="{{ url_for('login') }}" class="authBtn outlineBtn">Log in</a>
-                <a href="{{ url_for('signup') }}" class="authBtn fillBtn">Sign up</a>
-            {% endif %}
-        </div>
     </nav>
 
     <main>
