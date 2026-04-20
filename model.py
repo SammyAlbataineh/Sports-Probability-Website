@@ -109,3 +109,4 @@ def match_probabilities(home_team,away_team,max_goals=5):
     away_win/=total
     idd=generate_match_id(home_team,away_team,"12/17/2025")
     return{"Home":home_team,"Away":away_team,"HomeWin":float(round(home_win*100,1)),"Draw":float(round(draw*100,1)),"AwayWin":float(round(away_win*100,1)),"Id":hash(idd)}
+print(match_probabilities("Man United","Bournemouth",max_goals=5))
