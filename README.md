@@ -1,1 +1,1 @@
-
+In this project I used flask, html, pythom, and css to make a live soccer dashboard which shows probabilities for which team should win, and allows users to put custom matches. Website URL: footyodds.onrender.com
